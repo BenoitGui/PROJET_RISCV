@@ -1,0 +1,6 @@
+source "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/app_update/Kconfig.projbuild"
+source "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/bootloader/Kconfig.projbuild"
+source "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/esp_rom/Kconfig.projbuild"
+source "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/esptool_py/Kconfig.projbuild"
+source "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/partition_table/Kconfig.projbuild"
+source "/home/ben/Disque2/Travail/MASTER/SynologyDrive/ProjetM1/GitCode/PROJET/SOCKET1ESPC3/main/Kconfig.projbuild"

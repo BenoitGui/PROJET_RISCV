@@ -1,0 +1,22 @@
+{
+    "project_name":       "bootloader",
+    "project_path":       "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/bootloader/subproject",
+    "build_dir":          "/home/ben/Disque2/Travail/MASTER/SynologyDrive/ProjetM1/GitCode/PROJET/SOCKET1ESPC3/build/bootloader",
+    "config_file":        "/home/ben/Disque2/Travail/MASTER/SynologyDrive/ProjetM1/GitCode/PROJET/SOCKET1ESPC3/sdkconfig",
+    "config_defaults":    "",
+    "app_elf":            "bootloader.elf",
+    "app_bin":            "bootloader.bin",
+    "git_revision":       "v5.0-dev-1144-gb0ca71f302",
+    "target":             "esp32c3",
+    "rev":                "",
+    "phy_data_partition": "",
+    "monitor_baud" :      "115200",
+    "monitor_toolprefix": "riscv32-esp-elf-",
+    "config_environment" : {
+        "COMPONENT_KCONFIGS" : "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/efuse/Kconfig;/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/esp32c3/Kconfig;/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/esp_common/Kconfig;/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/esp_hw_support/Kconfig;/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/esp_system/Kconfig;/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/freertos/Kconfig;/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/hal/Kconfig;/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/log/Kconfig;/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/newlib/Kconfig;/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/spi_flash/Kconfig",
+        "COMPONENT_KCONFIGS_PROJBUILD" : "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/bootloader/Kconfig.projbuild;/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/esp_rom/Kconfig.projbuild;/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/esptool_py/Kconfig.projbuild;/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/partition_table/Kconfig.projbuild"
+    },
+    "build_components" : [ "bootloader", "bootloader_support", "efuse", "esp32c3", "esp_common", "esp_hw_support", "esp_rom", "esp_system", "esptool_py", "freertos", "hal", "log", "main", "micro-ecc", "newlib", "partition_table", "riscv", "soc", "spi_flash", "" ],
+    "build_component_paths" : [ "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/bootloader", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/bootloader_support", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/efuse", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/esp32c3", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/esp_common", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/esp_hw_support", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/esp_rom", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/esp_system", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/esptool_py", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/freertos", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/hal", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/log", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/bootloader/subproject/main", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/bootloader/subproject/components/micro-ecc", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/newlib", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/partition_table", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/riscv", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/soc", "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf/components/spi_flash", "" ],
+    "debug_prefix_map_gdbinit": ""
+}
