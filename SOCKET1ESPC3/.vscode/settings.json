@@ -13,6 +13,7 @@
     "files.associations": {
         "*.inc": "c",
         "*.ipp": "c",
-        "functional": "c"
+        "functional": "c",
+        "ssl.h": "c"
     }
 }
