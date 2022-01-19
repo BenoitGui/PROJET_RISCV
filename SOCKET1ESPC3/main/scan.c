@@ -11,6 +11,10 @@
     This example shows how to scan for available set of APs
 */
 #include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "esp_wifi.h"
@@ -54,15 +58,16 @@ static const char *TAGCONNECTION = "wifi station";
 static int s_retry_num = 0;
 
 static const char *TAGSOCKET = "socket";
+static const char *TAGSSL = "SSL";
 
 /*Task for TCP socket, STUB*/
-static void do_retransmit(const int sock)
+static void do_retransmit(SSL* sock)
 {
     int len;
     char rx_buffer[128];
 
     do {
-        len = recv(sock, rx_buffer, sizeof(rx_buffer) - 1, 0);
+        len = SSL_read(sock, rx_buffer, sizeof(rx_buffer) - 1);
         if (len < 0) {
             ESP_LOGE(TAGSOCKET, "Error occurred during receiving: errno %d", errno);
         } else if (len == 0) {
@@ -75,7 +80,7 @@ static void do_retransmit(const int sock)
             // Walk-around for robust implementation.
             int to_write = len;
             while (to_write > 0) {
-                int written = send(sock, rx_buffer + (len - to_write), to_write, 0);
+                int written = SSL_write(sock, rx_buffer + (len - to_write), to_write);
                 if (written < 0) {
                     ESP_LOGE(TAGSOCKET, "Error occurred during sending: errno %d", errno);
                 }
@@ -84,10 +89,51 @@ static void do_retransmit(const int sock)
         }
     } while (len > 0);
 }
+
+/*Creation of SSL context functions: source : https://wiki.openssl.org/index.php/Simple_TLS_Server*/
+SSL_CTX *create_context()
+{
+    const SSL_METHOD *method;
+    SSL_CTX *ctx;
+
+    method = TLS_server_method();
+
+    ctx = SSL_CTX_new(method);
+    if (!ctx) {
+        ESP_LOGE(TAGSSL, "Unable to create SSL context%d", errno);
+        exit(EXIT_FAILURE);
+    }
+
+    return ctx;
+}
+
+void configure_context(SSL_CTX *ctx)
+{
+    extern const unsigned char   certificate [] asm("_binary_cert_pem_start");
+    extern const unsigned char   key [] asm("_binary_key_pem_start");
+    /* Set the key and cert */
+    if (SSL_CTX_use_certificate(ctx,certificate) !=0) {
+        ESP_LOGE(TAGSSL, "Error with file cert.pem %d", errno);
+        exit(EXIT_FAILURE);
+    }
+
+    if (SSL_CTX_use_PrivateKey(ctx,key) != 0 ) {
+        
+        ESP_LOGE(TAGSSL, "Error with file key.pem %d", errno);
+        exit(EXIT_FAILURE);
+    }
+}
+
 /*TCP socket creation and connection
    Will maybe will also be needed for UDP*/
 static void tcp_server_task(void *pvParameters)
 {
+
+    SSL_CTX *ctx;
+
+    ctx = create_context();
+
+    configure_context(ctx);
     char addr_str[128];
     int addr_family = (int)pvParameters;
     int ip_protocol = 0;
@@ -130,7 +176,7 @@ static void tcp_server_task(void *pvParameters)
     while (1) {
 
         ESP_LOGI(TAGSOCKET, "Socket listening");
-
+        SSL *ssl;
         struct sockaddr_storage source_addr; // Large enough for both IPv4 or IPv6
         socklen_t addr_len = sizeof(source_addr);
         int sock = accept(listen_sock, (struct sockaddr *)&source_addr, &addr_len);
@@ -141,20 +187,29 @@ static void tcp_server_task(void *pvParameters)
 
         // Set tcp keepalive option
         setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &keepAlive, sizeof(int));
+     
         // Convert ip address to string
         if (source_addr.ss_family == PF_INET) {
             inet_ntoa_r(((struct sockaddr_in *)&source_addr)->sin_addr, addr_str, sizeof(addr_str) - 1);
         }
         ESP_LOGI(TAGSOCKET, "Socket accepted ip address: %s", addr_str);
+        ssl = SSL_new(ctx);
+        SSL_set_fd(ssl, sock);
+        if (SSL_accept(ssl) <= 0) {
+            ESP_LOGE(TAGSSL, "SSL sock not accepted %d",errno);
+        } else {
+            do_retransmit(ssl);
+        }
 
-        do_retransmit(sock);
-
-        shutdown(sock, 0);
+        SSL_shutdown(ssl);
+        SSL_free(ssl);
         close(sock);
     }
 
 CLEAN_UP:
     close(listen_sock);
+
+    SSL_CTX_free(ctx);
     vTaskDelete(NULL);
 }
 
@@ -268,9 +323,9 @@ static void print_cipher_type(int pairwise_cipher, int group_cipher)
 }
 
 /* Initialize Wi-Fi as sta and set scan method */
-static void wifi_socket(void)
+static bool wifi_socket(void)
 {
-
+    bool connected = false;
     s_wifi_event_group = xEventGroupCreate();
 
 
@@ -349,6 +404,7 @@ static void wifi_socket(void)
              if (bits & WIFI_CONNECTED_BIT) {
                  ESP_LOGI(TAGCONNECTION, "connected to ap SSID:%s password:%s",
                  EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
+                 connected = true;
             } else if (bits & WIFI_FAIL_BIT) {
                 ESP_LOGI(TAGCONNECTION, "Failed to connect to SSID:%s, password:%s",
                  EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
@@ -364,6 +420,7 @@ static void wifi_socket(void)
 
 
     }
+    return connected;
 
 }
 
@@ -376,7 +433,11 @@ void app_main(void)
         ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK( ret );
-    wifi_socket();
+    if (wifi_socket()) {
 
-    xTaskCreate(tcp_server_task, "tcp_server", PORT, (void*)AF_INET, 5, NULL);
+        xTaskCreate(tcp_server_task, "tcp_server", PORT, (void*)AF_INET, 5, NULL);
+    }
+    else {
+        ESP_LOGI(TAGSOCKET, "Not Connected to internet");
+    }
 }
