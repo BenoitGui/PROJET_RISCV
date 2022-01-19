@@ -11,6 +11,8 @@
     "idf.pythonBinPath": "/home/ben/.espressif/python_env/idf5.0_py3.8_env/bin/python",
     "idf.toolsPath": "/home/ben/.espressif",
     "files.associations": {
-        "*.inc": "c"
+        "*.inc": "c",
+        "*.ipp": "c",
+        "functional": "c"
     }
 }
