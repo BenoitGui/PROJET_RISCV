@@ -22,17 +22,30 @@
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
 #include <lwip/netdb.h>
+#include "esp_private/esp_clk.h"
 
+#include "soc/soc_caps.h"
+
+#include "unity.h"
+#include "mbedtls/sha1.h"
+#include "mbedtls/sha256.h"
+
+#include "sha/sha_parallel_engine.h"
 /* The examples use WiFi configuration that you can set via project configuration menu
 
    If you'd rather not, just change the below entries to strings with
    the config you want - ie #define EXAMPLE_WIFI_SSID "mywifissid"
 */
-#define EXAMPLE_ESP_WIFI_SSID      "SSID"
-#define EXAMPLE_ESP_WIFI_PASS      "PASSWD"
+#define EXAMPLE_ESP_WIFI_SSID      "Redmi Note 8T"
+#define EXAMPLE_ESP_WIFI_PASS      "375f59e10fc2"
 #define EXAMPLE_ESP_MAXIMUM_RETRY  10
 
-
+#define APP_USERNAME "Ben"
+uint8_t APP_PASSWORD [32]={ 0x16, 0xed, 0x3f, 0xe5, 0x3e, 0x22, 0xcb, 0x4e,
+                                         0x1e, 0xb2, 0x29, 0x87, 0xdd, 0x4e, 0xdb, 0xcc,
+                                         0xba, 0xc4, 0xd5, 0xb3, 0x4d, 0x70, 0xe9, 0x4f,
+                                         0xa1, 0x2d, 0xc1, 0x49, 0x2d, 0x59, 0x5f, 0x85,
+                                         };
 
 /*Configuration for TCP connexion*/
 #define PORT                        4096
@@ -59,30 +72,83 @@ static const char *TAGSOCKET = "socket";
 static void do_retransmit(const int sock)
 {
     int len;
-    char rx_buffer[128];
 
-    do {
-        len = recv(sock, rx_buffer, sizeof(rx_buffer) - 1, 0);
-        if (len < 0) {
-            ESP_LOGE(TAGSOCKET, "Error occurred during receiving: errno %d", errno);
-        } else if (len == 0) {
-            ESP_LOGW(TAGSOCKET, "Connection closed");
-        } else {
-            rx_buffer[len] = 0; // Null-terminate whatever is received and treat it like a string
-            ESP_LOGI(TAGSOCKET, "Received %d bytes: %s", len, rx_buffer);
+    char username[32];
+    size_t password_size = sizeof(unsigned char)*11;
+    unsigned char * password =  heap_caps_malloc(password_size, MALLOC_CAP_8BIT);
+    uint8_t   passwordsha[32] = {0};
+    int written = send(sock, "Username\n", sizeof("Username\n"), 0);
+    if (written < 0) {
+        ESP_LOGE(TAGSOCKET, "Error occurred during sending: errno %d", errno);
+        
+        return;
+    }
+    len = recv(sock,username,sizeof(username)-1,0);
+    username[strcspn((char *)username,"\n")]=0;
+     if (len < 0) {
+        ESP_LOGE(TAGSOCKET, "Error occurred during receiving: errno %d", errno);
+        return;
+    } else if (len == 0) {
+        ESP_LOGW(TAGSOCKET, "Connection closed");
+        return;
+    } else {
+        if(!strcmp(username,APP_USERNAME)) {
+            ESP_LOGI(TAGSOCKET, "Username is correct");
+        }
+        else {
+            written = send(sock, "Incorrect Username\n", sizeof("Incorrect Username\n"), 0);
+              if (written < 0) {
+                    ESP_LOGE(TAGSOCKET, "Error occurred during sending: errno %d", errno);
+        
+                    return;
+                }
+            ESP_LOGI(TAGSOCKET,"Incorrect username , quitting...");
+            
+            return;
+        }
+    }
+    written = send(sock, "Password\n", sizeof("Password\n"), 0);
+    if (written < 0) {
+        ESP_LOGE(TAGSOCKET, "Error occurred during sending: errno %d", errno);
+        
+        return;
+    }
 
-            // send() can return less bytes than supplied length.
-            // Walk-around for robust implementation.
-            int to_write = len;
-            while (to_write > 0) {
-                int written = send(sock, rx_buffer + (len - to_write), to_write, 0);
+    len = recv(sock,password,password_size-1,0);
+    password[password_size-1]=0;
+     if (len < 0) {
+        ESP_LOGE(TAGSOCKET, "Error occurred during receiving: errno %d", errno);
+        return;
+    } else if (len == 0) {
+        ESP_LOGW(TAGSOCKET, "Connection closed");
+        return;
+    } else {        
+        esp_sha(SHA2_256,password,password_size-1,passwordsha);     
+        for (int ptr=0; ptr < sizeof(APP_PASSWORD);ptr++) {
+            if (*(APP_PASSWORD+ptr)!=*(passwordsha+ptr)) {
+                written = send(sock, "Incorrect Password\n", sizeof("Incorrect Password\n"), 0);
                 if (written < 0) {
                     ESP_LOGE(TAGSOCKET, "Error occurred during sending: errno %d", errno);
+        
+                    return;
                 }
-                to_write -= written;
+                ESP_LOGI(TAGSOCKET,"Incorrect password , quitting...");
+            
+            return;
             }
         }
-    } while (len > 0);
+            ESP_LOGI(TAGSOCKET, "Password is correct");
+        
+    }while (1) {
+    
+        int written = send(sock, "24 ° C\n", sizeof("24 ° C\n"), 0);
+        if (written < 0) {
+            ESP_LOGE(TAGSOCKET, "Error occurred during sending: errno %d", errno);
+            return;
+        }
+        vTaskDelay(1000);
+    }
+    
 }
 /*TCP socket creation and connection
    Will maybe will also be needed for UDP*/
