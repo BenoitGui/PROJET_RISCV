@@ -11,6 +11,9 @@
     This example shows how to scan for available set of APs
 */
 #include <string.h>
+
+#include <math.h>
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "esp_wifi.h"
@@ -31,6 +34,10 @@
 #include "mbedtls/sha256.h"
 
 #include "sha/sha_parallel_engine.h"
+
+
+#include "driver/adc.h"
+#include "esp_adc_cal.h"
 /* The examples use WiFi configuration that you can set via project configuration menu
 
    If you'd rather not, just change the below entries to strings with
@@ -39,7 +46,7 @@
 #define EXAMPLE_ESP_WIFI_SSID      "Redmi Note 8T"
 #define EXAMPLE_ESP_WIFI_PASS      "375f59e10fc2"
 #define EXAMPLE_ESP_MAXIMUM_RETRY  10
-
+/*PASSWORD FOR SOCKET AND USERNAME*/
 #define APP_USERNAME "Ben"
 uint8_t APP_PASSWORD [32]={ 0x16, 0xed, 0x3f, 0xe5, 0x3e, 0x22, 0xcb, 0x4e,
                                          0x1e, 0xb2, 0x29, 0x87, 0xdd, 0x4e, 0xdb, 0xcc,
@@ -55,7 +62,24 @@ static EventGroupHandle_t s_wifi_event_group;
 #define DEFAULT_SCAN_LIST_SIZE CONFIG_EXAMPLE_SCAN_LIST_SIZE
 
 static const char *TAGSCAN = "scan";
+/* ADC channels */
 
+#define ADC1_EXAMPLE_CHAN0          ADC1_CHANNEL_3
+
+static int adc_raw[1][10];
+
+static esp_adc_cal_characteristics_t adc1_chars;
+//ADC Attenuation
+#define ADC_EXAMPLE_ATTEN           ADC_ATTEN_DB_2_5
+
+#define ADC_EXAMPLE_CALI_SCHEME     ESP_ADC_CAL_VAL_EFUSE_TP
+/*ADC values (error, voltage, TAG LOG, calibraction enable verfication*/
+
+esp_err_t retADC;
+uint32_t voltage ;
+bool cali_enable ;
+
+static const char *TAGADC = "ADC";
 /* The event group allows multiple bits for each event, but we only care about two events:
  * - we are connected to the AP with an IP
  * - we failed to connect after the maximum amount of retries */
@@ -68,11 +92,16 @@ static int s_retry_num = 0;
 
 static const char *TAGSOCKET = "socket";
 
-/*Task for TCP socket, STUB*/
+/*Task for TCP socket*/
+/*Tasks:
+Asking username
+Asking password
+Sending data*/
+
 static void do_retransmit(const int sock)
 {
     int len;
-
+    /* ASK USERNAME -------------------------------------------------*/ 
     char username[32];
     size_t password_size = sizeof(unsigned char)*11;
     unsigned char * password =  heap_caps_malloc(password_size, MALLOC_CAP_8BIT);
@@ -107,6 +136,8 @@ static void do_retransmit(const int sock)
             return;
         }
     }
+    /*------------------------------------------------------------*/
+    /*ASK PASSWORD -----------------------------------------------*/
     written = send(sock, "Password\n", sizeof("Password\n"), 0);
     if (written < 0) {
         ESP_LOGE(TAGSOCKET, "Error occurred during sending: errno %d", errno);
@@ -138,20 +169,45 @@ static void do_retransmit(const int sock)
             }
         }
             ESP_LOGI(TAGSOCKET, "Password is correct");
-        
+    /*------------------------------------------------------------*/
+    /*Taking captor value, convert it and send data*--------------*/    
     }while (1) {
-    
-        int written = send(sock, "24 ° C\n", sizeof("24 ° C\n"), 0);
+        /*ADC parameter converter */
+
+        double c1 = 0.001129148, c2 = 0.000234125, c3 = 0.0000000876741; //steinhart-hart coeficients for thermistor
+        volatile double R2 = 0;
+        double logR2 = 0;
+        double T=0;
+        char tosend[15];
+        adc_raw[0][0] = adc1_get_raw(ADC1_EXAMPLE_CHAN0);
+        if (cali_enable) {
+            logR2=0.;
+            T=0.;
+
+            voltage = esp_adc_cal_raw_to_voltage(adc_raw[0][0], &adc1_chars);
+            R2 = 10000 * (4095.0 /  (double)adc_raw[0][0] - 1.0); //calculate resistance on thermistor
+
+            logR2 = log(R2);
+
+            T = (1.0 / (c1 + c2*logR2 + c3*logR2*logR2*logR2)); // temperature in Kelvin
+
+            T = T - 273.15; //convert Kelvin to Celcius
+
+            //T+4 for calibration
+            sprintf(tosend,"%f ° C\n",T+4);
+            int written = send(sock, tosend, sizeof(tosend), 0);
+        }
         if (written < 0) {
             ESP_LOGE(TAGSOCKET, "Error occurred during sending: errno %d", errno);
             return;
         }
-        vTaskDelay(1000);
+        
+        vTaskDelay(pdMS_TO_TICKS(500));
     }
-    
+    /*-------------------------------------------------------------------------------------*/
 }
 /*TCP socket creation and connection
-   Will maybe will also be needed for UDP*/
+   Will maybe will also be needed for UDP -- Taken from example code*/
 static void tcp_server_task(void *pvParameters)
 {
     char addr_str[128];
@@ -224,7 +280,7 @@ CLEAN_UP:
     vTaskDelete(NULL);
 }
 
-/*Connection to the Acess Point*/
+/*Connection to the Acess Point--Taken from example code*/
 static void event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
 {
@@ -247,7 +303,7 @@ static void event_handler(void* arg, esp_event_base_t event_base,
     }
 }
 
-/*Auth modes of the wifi when scanning*/
+/*Auth modes of the wifi when scanning--- Taken from example code*/
 static void print_auth_mode(int authmode)
 {
     switch (authmode) {
@@ -281,7 +337,7 @@ static void print_auth_mode(int authmode)
     }
 }
 
-/*Cypher type of Wifi when scanning*/
+/*Cypher type of Wifi when scanning -- Taken from example code*/
 static void print_cipher_type(int pairwise_cipher, int group_cipher)
 {
     switch (pairwise_cipher) {
@@ -332,8 +388,30 @@ static void print_cipher_type(int pairwise_cipher, int group_cipher)
         break;
     }
 }
+/*Initialize ADC calibration -- Taken from Example code*/
+static bool adc_calibration_init(void)
+{
+    esp_err_t ret;
+    bool cali_enable = false;
 
-/* Initialize Wi-Fi as sta and set scan method */
+    ret = esp_adc_cal_check_efuse(ADC_EXAMPLE_CALI_SCHEME);
+    if (ret == ESP_ERR_NOT_SUPPORTED) {
+        ESP_LOGW(TAGADC, "Calibration scheme not supported, skip software calibration");
+    } else if (ret == ESP_ERR_INVALID_VERSION) {
+        ESP_LOGW(TAGADC, "eFuse not burnt, skip software calibration");
+    } else if (ret == ESP_OK) {
+        cali_enable = true;
+        esp_adc_cal_characterize(ADC_UNIT_1, ADC_EXAMPLE_ATTEN, ADC_WIDTH_BIT_DEFAULT, 0, &adc1_chars);
+    } else {
+        ESP_LOGE(TAGADC, "Invalid arg");
+    }
+
+    //ADC1 config
+    ESP_ERROR_CHECK(adc1_config_width(ADC_WIDTH_BIT_DEFAULT));
+    ESP_ERROR_CHECK(adc1_config_channel_atten(ADC1_EXAMPLE_CHAN0, ADC_EXAMPLE_ATTEN));
+    return cali_enable;
+}
+/* Initialize Wi-Fi as sta and set scan method -- Taken from example code*/
 static void wifi_socket(void)
 {
 
@@ -367,6 +445,7 @@ static void wifi_socket(void)
             print_cipher_type(ap_info[i].pairwise_cipher, ap_info[i].group_cipher);
         }
         ESP_LOGI(TAGSCAN, "Channel \t\t%d\n", ap_info[i].primary);
+        //Connect to wifi if ssid wanted is found
         if(!strcmp((char *)ap_info[i].ssid,EXAMPLE_ESP_WIFI_SSID)) {
 
             ESP_LOGI(TAGCONNECTION, "FOUNDED EXPECTED SSID, trying to connect...");
@@ -435,6 +514,7 @@ static void wifi_socket(void)
 
 void app_main(void)
 {
+    
     // Initialize NVS
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -442,6 +522,10 @@ void app_main(void)
         ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK( ret );
+    //Initialise AFC 
+    retADC = ESP_OK;
+    voltage = 0;
+    cali_enable = adc_calibration_init();
     wifi_socket();
 
     xTaskCreate(tcp_server_task, "tcp_server", PORT, (void*)AF_INET, 5, NULL);
