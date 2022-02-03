@@ -196,10 +196,11 @@ static void do_retransmit(const int sock)
             //T+4 for calibration
             sprintf(tosend,"%f ° C\n",T+4);
             int written = send(sock, tosend, sizeof(tosend), 0);
-        }
-        if (written < 0) {
-            ESP_LOGE(TAGSOCKET, "Error occurred during sending: errno %d", errno);
-            return;
+
+            if (written < 0) {
+                 ESP_LOGE(TAGSOCKET, "Error occurred during sending: errno %d", errno);
+                return;
+            }
         }
         
         vTaskDelay(pdMS_TO_TICKS(500));
