@@ -1,0 +1,22 @@
+{
+    "project_name":       "bootloader",
+    "project_path":       "/Travail/Utilitaires/esp/esp-idf/components/bootloader/subproject",
+    "build_dir":          "/Travail/MASTER/SynologyDrive/ProjetM1/GitCode/interrupt_2/i2/build/bootloader",
+    "config_file":        "/Travail/MASTER/SynologyDrive/ProjetM1/GitCode/interrupt_2/i2/sdkconfig",
+    "config_defaults":    "",
+    "app_elf":            "bootloader.elf",
+    "app_bin":            "bootloader.bin",
+    "git_revision":       "v5.0-dev-1144-gb0ca71f302-dirty",
+    "target":             "esp32",
+    "rev":                "0",
+    "phy_data_partition": "",
+    "monitor_baud" :      "115200",
+    "monitor_toolprefix": "",
+    "config_environment" : {
+        "COMPONENT_KCONFIGS" : "/Travail/Utilitaires/esp/esp-idf/components/efuse/Kconfig;/Travail/Utilitaires/esp/esp-idf/components/esp32/Kconfig;/Travail/Utilitaires/esp/esp-idf/components/esp_common/Kconfig;/Travail/Utilitaires/esp/esp-idf/components/esp_hw_support/Kconfig;/Travail/Utilitaires/esp/esp-idf/components/esp_system/Kconfig;/Travail/Utilitaires/esp/esp-idf/components/freertos/Kconfig;/Travail/Utilitaires/esp/esp-idf/components/hal/Kconfig;/Travail/Utilitaires/esp/esp-idf/components/log/Kconfig;/Travail/Utilitaires/esp/esp-idf/components/newlib/Kconfig;/Travail/Utilitaires/esp/esp-idf/components/spi_flash/Kconfig",
+        "COMPONENT_KCONFIGS_PROJBUILD" : "/Travail/Utilitaires/esp/esp-idf/components/bootloader/Kconfig.projbuild;/Travail/Utilitaires/esp/esp-idf/components/esp_rom/Kconfig.projbuild;/Travail/Utilitaires/esp/esp-idf/components/esptool_py/Kconfig.projbuild;/Travail/Utilitaires/esp/esp-idf/components/partition_table/Kconfig.projbuild"
+    },
+    "build_components" : [ "bootloader", "bootloader_support", "efuse", "esp32", "esp_common", "esp_hw_support", "esp_rom", "esp_system", "esptool_py", "freertos", "hal", "log", "main", "micro-ecc", "newlib", "partition_table", "soc", "spi_flash", "xtensa", "" ],
+    "build_component_paths" : [ "/Travail/Utilitaires/esp/esp-idf/components/bootloader", "/Travail/Utilitaires/esp/esp-idf/components/bootloader_support", "/Travail/Utilitaires/esp/esp-idf/components/efuse", "/Travail/Utilitaires/esp/esp-idf/components/esp32", "/Travail/Utilitaires/esp/esp-idf/components/esp_common", "/Travail/Utilitaires/esp/esp-idf/components/esp_hw_support", "/Travail/Utilitaires/esp/esp-idf/components/esp_rom", "/Travail/Utilitaires/esp/esp-idf/components/esp_system", "/Travail/Utilitaires/esp/esp-idf/components/esptool_py", "/Travail/Utilitaires/esp/esp-idf/components/freertos", "/Travail/Utilitaires/esp/esp-idf/components/hal", "/Travail/Utilitaires/esp/esp-idf/components/log", "/Travail/Utilitaires/esp/esp-idf/components/bootloader/subproject/main", "/Travail/Utilitaires/esp/esp-idf/components/bootloader/subproject/components/micro-ecc", "/Travail/Utilitaires/esp/esp-idf/components/newlib", "/Travail/Utilitaires/esp/esp-idf/components/partition_table", "/Travail/Utilitaires/esp/esp-idf/components/soc", "/Travail/Utilitaires/esp/esp-idf/components/spi_flash", "/Travail/Utilitaires/esp/esp-idf/components/xtensa", "" ],
+    "debug_prefix_map_gdbinit": ""
+}

@@ -1,0 +1,23 @@
+{
+    "C_Cpp.intelliSenseEngine": "Tag Parser",
+    "idf.adapterTargetName": "esp32",
+    "idf.customExtraPaths": "/home/ben/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin:/home/ben/.espressif/tools/xtensa-esp32s2-elf/esp-2021r2-8.4.0/xtensa-esp32s2-elf/bin:/home/ben/.espressif/tools/xtensa-esp32s3-elf/esp-2021r2-8.4.0/xtensa-esp32s3-elf/bin:/home/ben/.espressif/tools/riscv32-esp-elf/esp-2021r2-8.4.0/riscv32-esp-elf/bin:/home/ben/.espressif/tools/esp32ulp-elf/2.28.51-esp-20191205/esp32ulp-elf-binutils/bin:/home/ben/.espressif/tools/esp32s2ulp-elf/2.28.51-esp-20191205/esp32s2ulp-elf-binutils/bin:/home/ben/.espressif/tools/cmake/3.20.3/bin:/home/ben/.espressif/tools/openocd-esp32/v0.11.0-esp32-20211220/openocd-esp32/bin:/home/ben/.espressif/tools/ninja/1.10.2",
+    "idf.customExtraVars": "{\"OPENOCD_SCRIPTS\":\"/home/ben/.espressif/tools/openocd-esp32/v0.11.0-esp32-20211220/openocd-esp32/share/openocd/scripts\"}",
+    "idf.espIdfPath": "/home/ben/Disque2/Travail/Utilitaires/esp/esp-idf",
+    "idf.openOcdConfigs": [
+        "interface/ftdi/esp32_devkitj_v1.cfg",
+        "target/esp32.cfg"
+    ],
+    "idf.pythonBinPath": "/home/ben/.espressif/python_env/idf5.0_py3.8_env/bin/python",
+    "idf.toolsPath": "/home/ben/.espressif",
+    "files.associations": {
+        "*.contiki": "c",
+        "*.lwip": "c",
+        "esp_system.h": "c",
+        "gpio.h": "c",
+        "rtc_wdt.h": "c",
+        "type_traits": "c",
+        "interrupt_controller_hal.h": "c"
+    },
+    "idf.port": "/dev/ttyUSB0"
+}
